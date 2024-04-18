@@ -1,0 +1,42 @@
+Project phase 1:
+    convert data to csv and import into neo4j
+    backend support read data
+
+Project phase 2:
+    support wrong namem, and find possible name (编辑距离算法: levenshtein distance/edit distance)
+    frontend connect to neo4j
+
+Project phase 3:
+    support LLM or FeedForward neural network to detect user intent and reply user. (Reference: https://www.cnblogs.com/little-horse/p/14200745.html#autoid-3-0-0)
+    both frontend and backend.
+
+
+Open neo4j deskto (Ubuntu)=> ./neo4j-desktop-1.5.9-x86_64.AppImage
+
+############################################################################
+cypher commands:
+
+clear database:
+MATCH (n) DETACH DELETE n;
+
+import csv file to database:
+LOAD CSV WITH HEADERS FROM 'file:///books_data.csv' AS row
+MERGE (book:Book { bookId: row.bookId })
+ON CREATE SET
+    book.title = row.Title,
+    book.description = row.description,
+    book.image = row.image,
+    book.previewLink = row.previewLink,
+    book.publisher = row.publisher,
+    book.publishedDate = row.publishedDate,
+    book.infoLink = row.infoLink,
+    book.categories = row.categories,
+    book.ratingsCount = row.ratingsCount
+ON MATCH SET
+    book.lastUpdated=timestamp()
+WITH book, row
+UNWIND split(row.authors, ',') as authorName
+MERGE (author:Author {name: trim(authorName) })
+MERGE (book)-[:WRITTEN_BY]->(author)
+RETURN book, 'Created or updated on' AS Status, book.lastUpdated;
+
