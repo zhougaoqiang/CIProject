@@ -40,3 +40,21 @@ MERGE (author:Author {name: trim(authorName) })
 MERGE (book)-[:WRITTEN_BY]->(author)
 RETURN book, 'Created or updated on' AS Status, book.lastUpdated;
 
+
+##################################
+python3 libraries
+
+Django
+djangorestframework
+neo4j
+neomodel
+django-neomodel
+neo4j-driver
+editdistance
+python-Levenshtein
+
+1. percentage similarity = (1 - editdistance/max_length_of_both_string) * 100
+2. assume the similarity must over 80%
+3. order the first name or second name
+
+
