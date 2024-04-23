@@ -13,4 +13,4 @@ def split_csv_pandas(input_file, output_prefix, chunksize=10000):
     chunk.to_csv(output_file, index=False)
 
 # Example usage
-split_csv_pandas("./archive/books_data.csv", "./archive/books_data", 10000)
+split_csv_pandas("./archive/books_data.csv", "./archive/books_data", 2000)

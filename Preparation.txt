@@ -19,6 +19,12 @@ cypher commands:
 clear database:
 MATCH (n) DETACH DELETE n;
 
+check if has duplicate:
+MATCH (book:Book)
+WITH book.title AS title, COLLECT(book) as books
+WHERE size(books) > 1
+RETURN title,books
+
 import csv file to database:
 LOAD CSV WITH HEADERS FROM 'file:///books_data.csv' AS row
 MERGE (book:Book { bookId: row.bookId })

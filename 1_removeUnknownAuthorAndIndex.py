@@ -27,7 +27,8 @@ def read_add_index_save_csv(input_file, output_file):
   df = df[df['Title'].notna()]
   df = df[df['description'].notna()]
   df = df[df['categories'].notna()]
-  df = df[df['ratingsCount'].notna()] 
+  df = df[df['ratingsCount'].notna()]
+  df = df[df['publisher'].notna()]
   # Add an index column starting from 1 and insert it at the first position (loc=0)
   df.insert(loc=0, column='bookId', value=range(1, len(df) + 1))
   # df = df.astype({col: str for col in columns_to_string})
