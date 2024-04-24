@@ -64,3 +64,5 @@ python-Levenshtein
 3. order the first name or second name
 
 
+CREATE CONSTRAINT ON (a:Author) ASSERT a.name IS UNIQUE;
+CREATE INDEX ON :Author(name);
