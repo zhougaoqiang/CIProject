@@ -29,13 +29,20 @@ def read_add_index_save_csv(input_file, output_file):
   df = df[df['categories'].notna()]
   df = df[df['ratingsCount'].notna()]
   df = df[df['publisher'].notna()]
-  # Add an index column starting from 1 and insert it at the first position (loc=0)
-  df.insert(loc=0, column='bookId', value=range(1, len(df) + 1))
-  # df = df.astype({col: str for col in columns_to_string})
   
   # df = clean_cell_quotes(df)
   # Save the dataframe to a new CSV file
   df.to_csv(output_file, index=False)  # Don't save the index column in the output
+  
+def read_save_csv(input_file, output_file):
+    df = pd.read_csv(input_file)
+    any_missing = df.isnull().any(axis=1)
+    # Drop rows with any missing values using `drop()`
+    df = df.drop(any_missing[any_missing].index)
+    # Add row index as a new column named 'index'
+    df['index'] = df.index + 1
+    # Save the DataFrame to a new CSV file
+    df.to_csv(output_file, index=False)
 
 # Example usage
 input_file = "./archive/books_raw_data.csv"

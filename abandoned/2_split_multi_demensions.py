@@ -9,7 +9,7 @@ import pandas as pd
 def split_csv_by_criteria(input_file, output_prefix):  
   df = pd.read_csv(input_file)
 
-  exclude_cols = ['bookId', 'categories', 'publisher']
+  exclude_cols = ['categories', 'publisher']
   third_file_cols = ['Title', 'authors'] ##has multi author, so need to seperate to multiple
   fourth_file_cols = ['Title', 'categories']
   fifth_file_cols = ['Title', 'publisher']
