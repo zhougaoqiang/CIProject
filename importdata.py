@@ -15,7 +15,7 @@ if readFromRawData :
 if sampleSize != 0 :
     actual_read_file = dataprocessfunctions.split_csv_pandas(actual_read_file, "./archive/books_data", sampleSize)
     
-authorFile, categoryFile, publisherFile, publishYearFile, ratingFile = dataprocessfunctions.split_files_to_review(actual_read_file, "./archive/split_data")
+authorFile, categoryFile, publisherFile, publishYearFile = dataprocessfunctions.split_files_to_review(actual_read_file, "./archive/split_data")
 
 #####step 1: import book labels and name labels.
 dataprocessfunctions.importBooks(actual_read_file)
@@ -29,3 +29,6 @@ dataprocessfunctions.importAndConnectBookCategories(categoryFile)
 
 #####step 4: import publisher
 dataprocessfunctions.importAndConnectBookPublisher(publisherFile)
+
+#####step 5: import published year
+dataprocessfunctions.importAndConnectBookPublishDate(publishYearFile)

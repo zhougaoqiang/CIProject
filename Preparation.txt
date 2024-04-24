@@ -25,6 +25,9 @@ WITH book.title AS title, COLLECT(book) as books
 WHERE size(books) > 1
 RETURN title,books
 
+check query
+match (n:Author) WHERE n.name='Josiah Bunting' return n
+
 import csv file to database:
 LOAD CSV WITH HEADERS FROM 'file:///books_data.csv' AS row
 MERGE (book:Book { bookId: row.bookId })

@@ -49,26 +49,26 @@ def split_files_to_review(input_file, output_prefix) :
     categoryFile_cols = ['Title', 'categories']
     publisherFile_cols = ['Title', 'publisher']
     publishYearFile_cols = ['Title', 'publishedDate']
-    ratingFile_cols = ['Title', 'ratingsCount']
+    # ratingFile_cols = ['Title', 'ratingsCount']
     
     authorFile_df = df[authorFile_cols]
     categoryFile_df = df[categoryFile_cols]
     publisherFile_df = df[publisherFile_cols]
     publishYearFile_df = df[publishYearFile_cols]
-    ratingFile_df = df[ratingFile_cols]
+    # ratingFile_df = df[ratingFile_cols]
     
     authorFile = f"{output_prefix}_authors.csv"
     categoryFile = f"{output_prefix}_categories.csv"
     publisherFile = f"{output_prefix}_publishers.csv"
     publishYearFile = f"{output_prefix}_publishyears.csv"
-    ratingFile = f"{output_prefix}_ratings.csv"
+    # ratingFile = f"{output_prefix}_ratings.csv"
     
     authorFile_df.to_csv(authorFile, index=False)
     categoryFile_df.to_csv(categoryFile, index=False)
     publisherFile_df.to_csv(publisherFile, index=False)
     publishYearFile_df.to_csv(publishYearFile, index=False)
-    ratingFile_df.to_csv(ratingFile, index=False)
-    return authorFile, categoryFile, publisherFile, publishYearFile, ratingFile
+    # ratingFile_df.to_csv(ratingFile, index=False)
+    return authorFile, categoryFile, publisherFile, publishYearFile
 
 def checkSimilarity(str1, str2) :
     len1 = len(str1)
@@ -103,7 +103,6 @@ def extractAuthors(inputFile, similarityThreshold=80):
             if name != other_name :
                 if checkSimilarity(sorted_names[name], sorted_names[other_name]) >= similarityThreshold :
                     similar_names.append(other_name)
-        print(f"check {name}")
         nameList.append([name, sorted_name, [", ".join(similar_names)]])
 
     with open(inputFile, 'w', newline='', encoding='utf-8') as writeFile:
@@ -115,23 +114,26 @@ def importBooks(csvFile):
         reader = csv.DictReader(file)
         index=0
         for row in reader :
-            book = Book(
-                title=row['Title'],
-                description=row['description'],
-                image=row['image'],
-                previewLink=row['previewLink'],
-                infoLink=row['infoLink'],
-                ratingsCount=float(row['ratingsCount'])
-            )
-            book.save()
-            index+=1
-            print(f'index={index}')
-            authors = [n.strip() for n in row['authors'].split(',') if n.strip()]
-            for authorName in authors:
-                author_list = Author.get_or_create({'name': authorName})
-                author = author_list[0] if author_list else None
-                if author:
-                    book.authors.connect(author)
+            try :
+                book = Book(
+                    title=row['Title'],
+                    description=row['description'],
+                    image=row['image'],
+                    previewLink=row['previewLink'],
+                    infoLink=row['infoLink'],
+                    ratingsCount=float(row['ratingsCount']),
+                    publishDate = row['publishedDate']
+                )
+                book.save()
+                index+=1
+                # print(f'index={index}')
+                authors = eval(row['authors'])
+                for authorName in authors:
+                    author = Author.get_or_create({'name': authorName})[0]
+                    if author:
+                        book.authors.connect(author)
+            except Exception as e :
+                print(f"process index={index} fail : {e}")
                     
 def connectSimilarAuthors(csv_file) :
     with open(csv_file, 'r', encoding='utf-8') as file:
@@ -140,7 +142,15 @@ def connectSimilarAuthors(csv_file) :
         
         for row in reader :
             authorName=row['name']
-            authors[authorName] = Author.nodes.get({'name': authorName})
+            authorName = row['name']
+            matching_authors = Author.nodes.filter(name=authorName)
+            if len(matching_authors) == 1:
+                authors[authorName] = matching_authors[0]
+            elif len(matching_authors) > 1:
+                print(f"Warning: Found multiple authors for name '{authorName}'")
+                authors[authorName] = matching_authors[0]
+            else:
+                print(f"No author found for name '{authorName}'")
             
         file.seek(0)
         next(reader) ##no need for header
@@ -166,13 +176,12 @@ def importAndConnectBookCategories(csv_file) :
             categories = ast.literal_eval(row['categories'])
             
             book = Book.nodes.get(title=book_title) ##confirm have 
-            
             for category_name in categories :
                 if category_name :
                     category= Category.get_or_create({'name':category_name})[0]
                     if not book.categories.is_connected(category) :
                         book.categories.connect(category)
-                        print(f"connected {book.Title} to category {category.name}")                                
+                        print(f"connected {book.title} to category {category.name}")                                
 
 def importAndConnectBookPublisher(csv_file) :
     with open(csv_file, 'r', encoding='utf-8') as file:
@@ -187,7 +196,35 @@ def importAndConnectBookPublisher(csv_file) :
                 publisher = Publisher.get_or_create({'name': publisherName})[0]
                 if not book.publisher.is_connected(publisher) :
                     book.publisher.connect(publisher)
-                    print(f"connected {book.Title} to publisher {publisher.name}")
+                    print(f"connected {book.title} to publisher {publisher.name}")
+
+def extract_year(date_str):
+    try:
+        # Assuming date_str is in the format YYYY-MM-DD
+        year = date_str.split('-')[0]
+        return int(year)
+    except Exception as e:
+        # Handle any errors such as invalid date format
+        print(f"Error extracting year from {date_str}: {e}")
+        return int(0)
+
+
+def importAndConnectBookPublishDate(csv_file) :
+    with open(csv_file, 'r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        
+        for row in reader :
+            book_title = row['Title']
+            publishedDate = row['publishedDate']
+            publishedYear = extract_year(publishedDate)
+
+            book = Book.nodes.get(title=book_title) ##confirm have
+            pubYear = PublishYear.get_or_create({'year': publishedYear})[0]
+            if not book.publishYear.is_connected(pubYear) :
+                book.publishYear.connect(pubYear)
+                print(f"connected {book.title} to publish Year {pubYear.year}")
+
+
 
 
 
