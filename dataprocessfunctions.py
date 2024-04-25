@@ -219,10 +219,10 @@ def importAndConnectBookPublishDate(csv_file) :
             publishedYear = extract_year(publishedDate)
 
             book = Book.nodes.get(title=book_title) ##confirm have
-            pubYear = PublishYear.get_or_create({'year': publishedYear})[0]
+            pubYear = PublishYear.get_or_create({'name': publishedYear})[0]
             if not book.publishYear.is_connected(pubYear) :
                 book.publishYear.connect(pubYear)
-                print(f"connected {book.title} to publish Year {pubYear.year}")
+                print(f"connected {book.title} to publish Year {pubYear.name}")
 
 
 
