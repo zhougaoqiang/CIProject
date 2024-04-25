@@ -1,9 +1,11 @@
 from neomodel import config
 config.DATABASE_URL = 'bolt://neo4j:OKOKOKOK@localhost:7687'
 
-from neomodel import StructuredNode, StringProperty, IntegerProperty, Relationship, RelationshipTo, RelationshipFrom, UniqueIdProperty, DateProperty, ArrayProperty, FloatProperty
+from neomodel import StructuredRel, StructuredNode, StringProperty, IntegerProperty, Relationship, RelationshipTo, RelationshipFrom, UniqueIdProperty, FloatProperty
 
-    
+class TestRel(StructuredRel) :
+    since = StringProperty()
+
 class Author(StructuredNode) :
     name = StringProperty(UniqueIdProperty=True, required=True)
     similar_with = Relationship('Author', 'SIMILAR_WITH')
@@ -18,7 +20,7 @@ class Publisher(StructuredNode) :
     books = RelationshipFrom('Book', 'PUBLISHED_BY')
 
 class PublishYear(StructuredNode) :
-    year = IntegerProperty(unique_index=True, required=True)
+    name = IntegerProperty(unique_index=True, required=True)
     books = RelationshipFrom('Book', 'PUBLISHED_YEAR')
 
 # class Rating(StructuredNode) :
