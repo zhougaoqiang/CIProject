@@ -1,6 +1,7 @@
-from models import Book, Author, Category, Publisher, PublishYear
+from .models import Book, Author, Category, Publisher, PublishYear
 import json
 import Levenshtein
+from neomodel import Q
 
 class DataQuery :
     def __init__(self) :
@@ -8,7 +9,6 @@ class DataQuery :
     
 ######################################################################
 ###################### generic fetch node functions #################
-###################### directky return json format ##################    
 ######################################################################
 
     def getBookNode(self, book_title) :
@@ -63,10 +63,8 @@ class DataQuery :
                 "publisher": {"name": book.publisher[0].name, "link": publisher_link} if publisher_link else None,
                 "publishedYear": {"name": book.publishYear[0].name, "link": published_year_link} if published_year_link else None
             }
-        
-            # Convert the dictionary to JSON format
-            book_json = json.dumps(book_data)
-            return book_json
+
+            return book_data
         else:
             return None
             
@@ -188,8 +186,105 @@ class DataQuery :
         return similar_names_sorted
 
 
+######################################################################
+###################### book related functions #####################
+######################################################################
+    @staticmethod
+    def convertBookNodeToJson(books) :
+        bookList=[]
+        for book in books: 
+            if book:
+                author_names = [{"name": author.name, "link": f"/authors/{author.name}"} for author in book.authors]
+                categories = [{"name": related_category.name, "link": f"/categories/{related_category.name}"} for related_category in book.categories]
+                publisher_link = f"/publishers/{book.publisher[0].name}" if book.publisher else None
+                published_year_link = f"/years/{book.publishYear[0].name}" if book.publishYear else None
         
+                # Create a dictionary with book details and relationships
+                book_data = {
+                    "title": book.title,
+                    "description": book.description,
+                    "image": book.image,
+                    "previewLink": book.previewLink,
+                    "infoLink": book.infoLink,
+                    "ratingsCount": book.ratingsCount,
+                    "authors": author_names,
+                    "categories": categories,
+                    "publisher": {"name": book.publisher[0].name, "link": publisher_link} if publisher_link else None,
+                    "publishedYear": {"name": book.publishYear[0].name, "link": published_year_link} if published_year_link else None
+                }
+                bookList.append(book_data)
+        
+        rtn = {"books" : bookList}
+        return rtn
 
+
+    def getBooks(self, orderBy, page, limit) :
+        try :
+            if page > 0 :
+                return DataQuery.convertBookNodeToJson(Book.nodes.order_by(orderBy).skip(limit*page).limit(limit))
+            else :
+                return DataQuery.convertBookNodeToJson(Book.nodes.order_by(orderBy).limit(limit))
+        except Exception as e:
+            print(f'get books function execute file [{orderBy}, {page}, {limit}]')
+            return None
+    
+    def getBooksCount(self) :
+        return Book.nodes.all()
+    
+    def searchBooksByContains(self, bookTitle, ignorecase=False):
+        if ignorecase :
+            return DataQuery.convertBookNodeToJson(Book.nodes.filter(title__icontains=bookTitle))
+        else :
+            return DataQuery.convertBookNodeToJson(Book.nodes.filter(title__contains=bookTitle))
+        
+    def searchBooksByStartWith(self, bookTitle, ignorecase=False) :
+        if ignorecase :
+            return Book.nodes.filter(title__istartswith=bookTitle)
+        else :
+            return Book.nodes.filter(title__startswith=bookTitle)
+
+    def searchBooksByRegex(self, bookTitle, ignorecase=False) :
+        if ignorecase :
+            return Book.nodes.filter(title__iregex=bookTitle)
+        else :
+            return Book.nodes.filter(title__regex=bookTitle)
+        
+    def findSimilarBooks(self, book_name, threshould):
+        books = Book.nodes.all()
+        book_titles = [book.title for book in books]
+        similar_books = []
+        book_name = DataQuery.sortName(book_name)
+        for book_title in book_titles :
+            similar_threshold = DataQuery.checkSimilarity(book_name, book_title)
+            if similar_threshold > threshould :
+                similar_books.append([book_title, similar_threshold])
+        ##sorted by similar_threshold, and descending order
+        similar_names_sorted = sorted(similar_books, key=lambda x: x[1], reverse=True)
+        return similar_names_sorted
+    
+    def fuzzySearchBooks(self, author='', category='', publisher='', startPublishedYear=0, endPublishedYear=0) :
+        books = Book.nodes.all()
+        if author:
+            books = books.filter(authors__name__icontains=author)
+        if category:
+            books = books.filter(categories__name__icontains=category)
+        if publisher:
+            books = books.filter(publisher__name__icontains=publisher)
+        if startPublishedYear > 0:
+            books = books.filter(publishYear__name__gte=startPublishedYear)
+        if endPublishedYear > 0:
+            books = books.filter(publishYear__name__lte=endPublishedYear)
+        return books
+    """ 
+    MATCH (b:Book)-[:AUTHORED_BY]->(a:Author),
+        (b)-[:HAS_CATEGORY]->(c:Category),
+        (b)-[:PUBLISHED_BY]->(p:Publisher),
+        (b)-[:PUBLISHED_YEAR]->(y:PublishYear)
+    WHERE c.name = {category_name}
+        AND p.name = {publisher_name}
+        AND y.year = {publish_year}
+    RETURN b.title, b.description
+    """
 
 ##################TEST use
 data_query = DataQuery()
