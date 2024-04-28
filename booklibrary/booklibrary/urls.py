@@ -16,8 +16,9 @@ Including another URLconf
 """
 # from django.contrib import admin
 from django.urls import path
-from .views import BookAPI
+from .views import BookAPI, OtherAPI
 
 urlpatterns = [
     path('api/books/', BookAPI.as_view(), name='books-api'),
+    path('api/others/', OtherAPI.as_view(), name='others-api'),
 ]

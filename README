@@ -1,0 +1,9 @@
+1. make sure installed neo4j Desktop
+2. install python libraries
+    i. python version: 3.11.8
+    ii. run: pip3 install -r requirements.txt
+3. go to CIPROJECT
+    3.1 insert full data to neo4j database : python3 importdata.py
+    3.2 insert 4000 rows to database : python3 importdata.py -r -s4000
+4. go to CIPROJECT/booklibarary
+    run: python3 manage.py runserver

@@ -1,0 +1,8 @@
+Django
+djangorestframework
+neo4j
+neomodel
+django-neomodel
+neo4j-driver
+editdistance
+python-Levenshtein
