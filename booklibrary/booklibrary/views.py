@@ -41,7 +41,7 @@ class BookAPI(View):
 
     def search_book_by_contain_name(self, request):
         book_name = request.GET.get('name')
-        ignore_case = request.GET.get('ignorecase', 'False').lower() == 'true'
+        ignore_case = request.GET.get('ignorecase', 'True').lower() == 'true'
         if book_name:
             data = self.data_query.searchBooksByContains(bookTitle=book_name, ignorecase=ignore_case)
             if data:
@@ -53,7 +53,7 @@ class BookAPI(View):
         
     def search_book_by_start_with(self, request):
         book_name = request.GET.get('name')
-        ignore_case = request.GET.get('ignorecase', 'False').lower() == 'true'
+        ignore_case = request.GET.get('ignorecase', 'True').lower() == 'true'
         if book_name:
             data = self.data_query.searchBooksByStartWith(bookTitle=book_name, ignorecase=ignore_case)
             if data:
@@ -217,7 +217,7 @@ class OtherAPI(View):
         
     def get_contain_name(self, request) :
         name = request.GET.get('name', '')
-        ignore_case = request.GET.get('ignorecase', 'False').lower() == 'true'
+        ignore_case = request.GET.get('ignorecase', 'True').lower() == 'true'
         if name:
             data = self.data_query.searchAuthorsByContains(name,ignore_case)
             if data:
@@ -229,7 +229,7 @@ class OtherAPI(View):
         
     def get_start_with_name(self, request):
         name = request.GET.get('name', '')
-        ignore_case = request.GET.get('ignorecase', 'False').lower() == 'true'
+        ignore_case = request.GET.get('ignorecase', 'True').lower() == 'true'
         if name:
             data = self.data_query.searchAuthorByStartWith(name,ignore_case)
             if data:
