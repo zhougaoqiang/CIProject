@@ -171,7 +171,7 @@ class DataQuery :
                 # Create a dictionary with book details and relationships
                 book_data = {
                     "title": book.title,
-                    "description": book.description,
+                    # "description": book.description,
                     "authors": author_names,
                 }
                 bookList.append(book_data)
@@ -248,13 +248,14 @@ class DataQuery :
     #         book_list.append(self.getBookWithRelationships(bn[0]))
     #     return {'books':book_list}
     
-    def fuzzySearchBooks(self, author='') :
+    def fuzzySearchBooks(self, author='', title='') :
         query = """
-        MATCH (b:Book)-[:AUTHORED_BY]->(a:Author),
+        MATCH (b:Book)-[:AUTHORED_BY]->(a:Author)
         WHERE a.name CONTAINS $author_name AND
+        b.title CONTAINS $book_title
         RETURN b
         """
-        params = {'author_name': author,}
+        params = {'author_name': author,'book_title' : title}
         books, meta = db.cypher_query(query, params)
         book_list = []
         for book in books :

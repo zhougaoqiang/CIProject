@@ -13,6 +13,6 @@ def analyseParameter(options) :
     return clearDatabase
 
 filename = "./archive/books01.csv"
-importer = BookDataImporter(filename, 80)
+importer = BookDataImporter(filename, 65)
 clearDatabase = analyseParameter(options=options)
 importer.importBookFromServer(clearDatabase)

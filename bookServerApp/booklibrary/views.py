@@ -65,23 +65,23 @@ class BookAPI(View):
     
     def fuzzy_seach_book(self, request):
         author_name = request.GET.get('author', '')
+        book_title = request.GET.get('book', '')
         print(author_name)
-        data = self.data_query.fuzzySearchBooks(author=author_name)
+        print(book_title)
+        data = self.data_query.fuzzySearchBooks(author=author_name, title=book_title)
         if data:
             return JsonResponse(data, safe=False)
         else:
             return JsonResponse({'error': 'Cannot find any book'}, status=404)
         
     def get_book_by_author(self, request) :
-        link_type = request.GET.get('link')
-        if link_type == 'author' :
-            author_name = request.GET.get('author-name')
-            if author_name :
-                data = self.data_query.getBookByAuthor(author_name)
-                if data:
-                    return JsonResponse(data, safe=False)
-                else:
-                    return JsonResponse({'error': 'Cannot find any book'}, status=404)
+        author_name = request.GET.get('author-name')
+        if author_name :
+            data = self.data_query.getBookByAuthor(author_name)
+            if data:
+                return JsonResponse(data, safe=False)
+            else:
+                return JsonResponse({'error': 'Cannot find any book'}, status=404)
         return JsonResponse({'error': 'No book name provided'}, status=400)
     
     def get_all_books(self, request) :
@@ -115,8 +115,8 @@ class AuthorAPI(View):
             return self.get_authors_counts(request)
         elif action == 'get-author-info' :
             return self.get_author_info(request)
-        elif action == 'get-similar-authors' :
-            return self.get_similar_authors(request)
+        # elif action == 'get-similar-authors' :
+        #     return self.get_similar_authors(request)
         elif action == 'get-by-contain-name' :
             return self.get_contain_name(request)
         # elif action == 'get-by-start-with-name':
