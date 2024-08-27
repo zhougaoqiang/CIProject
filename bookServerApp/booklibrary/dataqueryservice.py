@@ -23,13 +23,13 @@ class DataQuery :
         node = self.getBookNode(title)
         try :
             if node :
-                node.relationships.disconnect_all()
+                node.authors.disconnect_all()
                 node.delete()
                 return 0
             else :
                 return 1
         except Exception as e:
-            print(f'delete Book : {title} fail')
+            print(f'delete Book : {title} fail {e}')
             return 2
         
     @staticmethod

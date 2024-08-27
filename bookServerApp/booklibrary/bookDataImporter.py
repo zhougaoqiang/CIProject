@@ -1,7 +1,7 @@
 import pandas as pd
 import Levenshtein
 from itertools import combinations
-from bookModels import Book, Author
+from .bookModels import Book, Author
 from neomodel import db
 
 #######################################################################################################################################################################
@@ -26,7 +26,7 @@ class BookDataImporter :
         self.__createRelationshipAmongAuthors(newAuthorNodes, existAuthorNodes)
         
     def importBookFromWeb(self, df) :
-        existBooks, newAuthorNodes, existAuthorNodes = self.__importBookAndAuthorFromDataFrame(df)
+        existBooks, newAuthorNodes, existAuthorNodes = self.__importBookAndAuthorFromDataFrame(df, True)
         self.__createRelationshipAmongAuthors(newAuthorNodes, existAuthorNodes)
         return existBooks
     
@@ -34,7 +34,7 @@ class BookDataImporter :
     def __importBook(self) :
         df = self.__readCSV()
         updateDf, removedDf = self.__splitNullData(df)
-        existBooks, newAuthorNodes, existAuthorNodes = self.__importBookAndAuthorFromDataFrame(updateDf)
+        existBooks, newAuthorNodes, existAuthorNodes = self.__importBookAndAuthorFromDataFrame(updateDf, False)
         return existBooks, newAuthorNodes, existAuthorNodes
     
     def __splitNullData(self, inputDataFrame):
@@ -62,7 +62,7 @@ class BookDataImporter :
     def __clearDatabase(self):
         db.cypher_query("MATCH (n) DETACH DELETE n")
 
-    def __importBookAndAuthorFromDataFrame(self, df) :
+    def __importBookAndAuthorFromDataFrame(self, df, isWeb) :
         existedBook = []
         newAuthorNodes = []
         oldAuthorNodes = []
@@ -76,8 +76,13 @@ class BookDataImporter :
                 book.save()
                 
                 # directly create and connect author nodes
-                authors = eval(row['authors'])
+                if isWeb:
+                    authors = row['authors']
+                else :
+                    authors = eval(row['authors'])
+
                 for author in authors:
+                    print(f"author={author}")
                     authorNodes = Author.nodes.filter(name=author)
                     if authorNodes:
                         authorNode = Author.nodes.get(name=author)
@@ -100,8 +105,11 @@ class BookDataImporter :
                 a.similar_with.connect(b)    
 
     def __createRelationshipWithExistingAuthors(self, newAuthorNodes, existAuthorNodes) :
-        if len(existAuthorNodes) == 0 or len(newAuthorNodes) == 0:
-            print("no existing author or new author")
+        if len(existAuthorNodes) == 0 :
+            print("no existing author")
+            return
+        if  len(newAuthorNodes) == 0 :
+            print("no new author")
             return
         
         for newAuthorNode in newAuthorNodes :

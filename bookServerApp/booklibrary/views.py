@@ -4,7 +4,10 @@ from .dataqueryservice import DataQuery
 import json
 import pandas as pd
 from .bookDataImporter import BookDataImporter
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name='dispatch')
 class BookAPI(View):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,8 +47,8 @@ class BookAPI(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            action = data.get('action', '')
-
+            action = request.GET.get('action', '')
+            print(f'action={action}')
             if action == 'add-books':
                 return self.add_books_to_database(data) #####error code: 0-no error, 1-has exist book.
             elif action == 'delete-book' :
@@ -129,21 +132,25 @@ class BookAPI(View):
         return JsonResponse({"error": rtn}, safe=False)
     
     def update_book(self, data) :
-        bookTitle = data.get('book-title', '')
-        authors = data.get('authors', [])
-        rtn = self.data_query.deleteBookNode(bookTitle)
-        if rtn == 2:
-            return JsonResponse({"error": 1}, safe=False)
+        try :
+            bookTitle = data.get('book-title', '')
+            authors = data.get('authors', [])
+            rtn = self.data_query.deleteBookNode(bookTitle)
+            if rtn == 2:
+                return JsonResponse({"error": 1}, safe=False)
         
-        info = []
-        info.append({{'Title': bookTitle, 'authors': authors}})
-        df = pd.DataFrame(info, columns=['Title', 'authors'])
-        importer = BookDataImporter('', 65)
-        importer.importBookFromWeb(df)
-        return JsonResponse({"error": 0}, safe=False)
+            print('delete done, insert again')
+            info = []
+            info.append({'Title': bookTitle, 'authors': authors})
+            df = pd.DataFrame(info, columns=['Title', 'authors'])
+            importer = BookDataImporter('', 65)
+            importer.importBookFromWeb(df)
+            return JsonResponse({"error": 0}, safe=False)
+        except Exception as e:
+            return JsonResponse({"error": 1, "error messgae": e}, safe=False)
     
 
-    def __to_json(list):
+    def __to_json(self, list):
         books_list = []
         for row in list:
             books_list.append({
@@ -158,8 +165,7 @@ class BookAPI(View):
         data = []
         for book in books:
             title = book.get('title')
-            authors = ', '.join(book.get('authors', []))  # Join multiple authors with a comma
-            data.append({'Title': title, 'authors': authors})
+            data.append({'Title': title, 'authors': book.get('authors', [])})
         df = pd.DataFrame(data, columns=['Title', 'authors'])
         return df
 
