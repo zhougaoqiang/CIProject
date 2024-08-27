@@ -13,3 +13,5 @@ class Book(StructuredNode):
     title = StringProperty(unique_index=True, required=True)  # 标题作为唯一标识
     orderedTitle = StringProperty()
     authors = RelationshipTo(Author, 'AUTHORED_BY')
+    
+global_similarity_setting = 65

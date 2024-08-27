@@ -19,6 +19,19 @@ class DataQuery :
             print(f'node not exist Book : {book_title}')
             return None
         
+    def deleteBookNode(self, title) :
+        node = self.getBookNode(title)
+        try :
+            if node :
+                node.relationships.disconnect_all()
+                node.delete()
+                return 0
+            else :
+                return 1
+        except Exception as e:
+            print(f'delete Book : {title} fail')
+            return 2
+        
     @staticmethod
     def __getNode(nodeName, idValue) :
         try:
